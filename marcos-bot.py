@@ -57,7 +57,7 @@ class Marcos(telepot.helper.ChatHandler):
       text    = msg['text']
       if text == '/crydetector':
          self.send_start_slogan()
-         sent = self.sender.sendMessage('- Reset: Clean the cry alarm and wait again \n- Stop: Finish the the cry alarm', reply_markup=self._keyboard)
+         sent = self.sender.sendMessage('- *Reset*: Clean the cry alarm and wait again \n- *Stop*: Finish the the cry alarm', parse_mode='Markdown', reply_markup=self._keyboard)
          self._commands_editor = telepot.helper.Editor(self.bot, sent)
          self.stop_cry_detector()
          self.setup_cry_detector() 
