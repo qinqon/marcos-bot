@@ -45,12 +45,10 @@ class CryDetector:
             data = self.stream.read(self.chunk)
             level = self.get_level(data)
             if level > self.threshold:
-               print("Baby is on fire")
                for callback in self.callbacks:
-                  print("Calling callback")
                   callback()
          except IOError:
-            print("Ignoring chunk")
+            True
 
    def register(self, callback):
       self.callbacks.append(callback)     
