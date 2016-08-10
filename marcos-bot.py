@@ -21,6 +21,7 @@ class Marcos(telepot.helper.UserHandler, telepot.helper.AnswererMixin):
       self.alarm_text_list  = [u'\U0001F616' + " Bu", u'\U0001F622' + " Buaaa!", u'\U0001F62D' + " Buaaaaaa!!!"]
       self.alarm_text_index = 0
       self.cam = pygame.camera.Camera("/dev/video0",(640,480))
+      self.started = False      
 
    def send_a_picture(self):
       img = self.cam.get_image()
@@ -48,15 +49,19 @@ class Marcos(telepot.helper.UserHandler, telepot.helper.AnswererMixin):
       if self.alarm_text_index == len(self.alarm_text_list) - 1:
          self.send_a_picture()
 
-   def start(self):   
-      self.send_start_slogan()
-      self.stop_cry_detector()
-      self.setup_cry_detector() 
-      self.cam.start()  
+   def start(self):  
+      if not self.started: 
+         self.send_start_slogan()
+         self.stop_cry_detector()
+         self.setup_cry_detector() 
+         self.cam.start()  
+         self.started = True
      
    def stop(self):
-      self.stop_cry_detector()
-      self.cam.stop()       
+      if self.started:
+         self.stop_cry_detector()
+         self.cam.stop()  
+         self.started = False     
    
    def on_chat_message(self, msg):
     global state_machine
