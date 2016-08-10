@@ -9,21 +9,15 @@ import periodic_timer
 
 from threading import Thread
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from telepot.delegate import per_chat_id, create_open
+from telepot.delegate import per_from_id, create_open
+
  
-class Marcos(telepot.helper.ChatHandler):
+class Marcos(telepot.helper.UserHandler, telepot.helper.AnswererMixin):
    def __init__(self, seed_tuple, timeout):
       super(Marcos, self).__init__(seed_tuple, timeout)
       self.alarm_text_list  = [u'\U0001F616' + " Bu", u'\U0001F622' + " Buaaa!", u'\U0001F62D' + " Buaaaaaa!!!"]
       self.alarm_text_index = 0
-      self._count = 0
-      self._commands_editor = None
-      self._keyboard = InlineKeyboardMarkup(inline_keyboard=
-            [[
-               InlineKeyboardButton(text='Reset', callback_data='reset_cry_detector'),
-               InlineKeyboardButton(text='Stop', callback_data='stop_cry_detector'),
-            ]])
-      
+   
    def stop_cry_detector(self):
       periodic_timer.cancel()
       cry_detector.clean()
@@ -32,19 +26,14 @@ class Marcos(telepot.helper.ChatHandler):
    def setup_cry_detector(self):
       cry_detector.register(lambda: periodic_timer.start(lambda: self.send_alarm()))
    
-   def send_commands(self):
-      self.sender.sendMessage('- *Reset*: Clean the cry alarm and wait again \n- *Stop*: Finish the the cry alarm', parse_mode='Markdown', reply_markup=self._keyboard)
-   
    def send_start_slogan(self):
       slogan_text = 'Listening to the baby ' + u'\U0001F634'
       self.sender.sendMessage(slogan_text)
-      self.send_commands()
    
    def send_alarm(self):
       alarm_text = self.alarm_text_list[self.alarm_text_index]
       self.sender.sendMessage(alarm_text)
       self.alarm_text_index = (self.alarm_text_index + 1) % len(self.alarm_text_list)
-      self.send_commands()
    
    def on_chat_message(self, msg):
     global state_machine
@@ -57,19 +46,16 @@ class Marcos(telepot.helper.ChatHandler):
         return
     if (content_type == 'text'):
       text    = msg['text']
-      if text == '/crydetector':
+      if text == '/start':
          self.send_start_slogan()
          self.stop_cry_detector()
          self.setup_cry_detector() 
-  
-   def on_callback_query(self, msg):
-      query_id, from_id, data = telepot.glance(msg, flavor='callback_query')
-      if data == 'stop_cry_detector':
+
+      elif text == '/stop':
          self.stop_cry_detector()
          self.sender.sendMessage("Bye !!!")         
-
-      elif data == 'reset_cry_detector':
-         self.bot.answerCallbackQuery(query_id, text='Reseting cry detector')
+ 
+      elif text == '/reset':
          self.stop_cry_detector()
          self.setup_cry_detector() 
          self.send_start_slogan() 
@@ -92,8 +78,8 @@ cry_detector_thread.daemon = True
 cry_detector_thread.start()
 
 bot = telepot.DelegatorBot(args.token, [
-    (per_chat_id(types=['private']), create_open(Marcos, timeout=360)),
+    (per_from_id(), create_open(Marcos, timeout=360)),
 ])
 
-bot.message_loop()
+bot.message_loop(run_forever="Listening...")
 cry_detector_thread.join()
