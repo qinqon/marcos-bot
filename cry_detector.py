@@ -29,7 +29,7 @@ class CryDetector:
          self.paudio = pyaudio.PyAudio()
          mic_device = self.get_mic_device("USB")
          self.chunk = 1024
-
+         self.triggered = False
          self.stream = self.paudio.open(format=pyaudio.paInt16,
                input_device_index=mic_device,
                channels=1,
@@ -41,17 +41,20 @@ class CryDetector:
    def start(self):
       print("Starting cry detector")
       while True:
-         try:
-            data = self.stream.read(self.chunk)
-            level = self.get_level(data)
-            if level > self.threshold:
-               for callback in self.callbacks:
-                  callback()
-         except IOError:
-            True
+         if not self.triggered:
+            try:
+               data = self.stream.read(self.chunk)
+               level = self.get_level(data)
+               if level > self.threshold:
+                  self.triggered = True
+                  for callback in self.callbacks:
+                     callback()
+            except IOError:
+               True
 
    def register(self, callback):
       self.callbacks.append(callback)     
    
    def clean(self):
+      self.triggered = False
       self.callbacks = []
