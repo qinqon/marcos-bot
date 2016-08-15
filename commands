@@ -1,3 +1,4 @@
 start - Will issue and alarm if the baby is crying
 reset - Clean the cry alarm and wait again
 stop - Finish the the cry alarm
+pic - Send a picture of the baby
